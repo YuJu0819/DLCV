@@ -82,3 +82,4 @@ if __name__ == "__main__":
     net = DCGAN_D()
     print(net)
     print(net(torch.rand(16, 3, 64, 64)).shape)
+

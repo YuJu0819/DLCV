@@ -76,16 +76,23 @@ out_path = Path('./P1_A_out')
 rm_tree(ckpt_path)
 rm_tree(tb_path)
 rm_tree(out_path)
-
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+ngpu = 3
+# device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+device = torch.device("cuda:0" if (torch.cuda.is_available() and ngpu > 0) else "cpu")
 
 loss_fn = nn.BCELoss()  # take y as 1 or 0 <-> choosing logx or log(1-x) in BCE
 
 model_G = DCGAN_G().to(device)  # z.shape = (b, 100, 1, 1)
 model_D = DCGAN_D().to(device)
 
+if (device.type == 'cuda') and (ngpu > 1):
+    model_G = nn.DataParallel(model_G, list(range(ngpu)))
+if (device.type == 'cuda') and (ngpu > 1):
+    model_D = nn.DataParallel(model_D, list(range(ngpu)))
+
 optim_G = torch.optim.Adam(model_G.parameters(), lr=lr, betas=(0.5, 0.999))
 optim_D = torch.optim.Adam(model_D.parameters(), lr=lr, betas=(0.5, 0.999))
+
 
 writer = SummaryWriter(tb_path)
 

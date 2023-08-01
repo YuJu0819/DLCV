@@ -43,7 +43,7 @@ class DCGAN_G(nn.Module):
     def forward(self, z):
         return self.net(z)
 
-class DCGAN_D(nn.Module):
+class SNGAN_D(nn.Module):
     def __init__(self, num_map=64) -> None:
         super().__init__()
         self.net = nn.Sequential(

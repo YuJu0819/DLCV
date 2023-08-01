@@ -4,7 +4,7 @@ import random
 
 import torch
 from torchvision.utils import save_image
-
+import torch.nn as nn
 from p1_A_models import DCGAN_G
 
 # python3 P1_A_inference.py  -w ./P1_A_ckpt/best_G.pth -o ./P1_A_out
@@ -15,11 +15,14 @@ from p1_A_models import DCGAN_G
 def main(device, weight, out_dir):
     # 7: 28.793507172455804, 90.90
     seed = 7
+    ngpu = 3
     random.seed(seed)
     torch.manual_seed(seed)
 
     batch_size = 100
     model = DCGAN_G().to(device)
+    if (device.type == 'cuda') and (ngpu > 1):
+        model = nn.DataParallel(model, list(range(ngpu)))
     model.load_state_dict(torch.load(weight, map_location=device))
 
     idx = 0
@@ -49,7 +52,7 @@ def parse_args():
         "-d", "--device",
         help="device",
         type=torch.device,
-        default='cuda' if torch.cuda.is_available() else 'cpu',
+        default='cuda:0' if torch.cuda.is_available() else 'cpu',
     )
     return parser.parse_args()
 
