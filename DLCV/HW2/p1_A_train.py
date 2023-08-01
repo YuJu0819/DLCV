@@ -114,7 +114,7 @@ for epoch in range(1, num_epochs + 1):
             torch.ones(batch_size, dtype=torch.float32, device=device)
         )
         L_D = out_D_real.mean().item()
-        loss_D_real.backward()
+        loss_D_real.backward()  
 
         # train with all fake batch
         z = torch.randn(batch_size, 100, 1, 1, device=device)  # normal dist.

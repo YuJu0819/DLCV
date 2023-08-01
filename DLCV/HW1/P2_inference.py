@@ -9,7 +9,7 @@ from torchvision import transforms
 from p2_dataloader import p2_dataset
 from p2_models import DeepLabv3, FCN32s
 
-
+from torchvision.models.segmentation.deeplabv3 import DeepLabHead, FCNHead
 def pred2image(batch_preds, batch_names, out_path):
     # batch_preds = (b, H, W)
     for pred, name in zip(batch_preds, batch_names):
@@ -30,8 +30,11 @@ device = torch.device(
     'cuda') if torch.cuda.is_available() else torch.device('cpu')
 
 # net = DeepLabv3(n_classes=7, mode='resnet')
-net  = FCN32s()
-net.load_state_dict(torch.load('./P2_A_checkpoint/best_model.pth'))
+# net  = FCN32s()
+net = torch.hub.load('pytorch/vision:v0.10.0', 'deeplabv3_resnet50', pretrained=True)
+net.classifier = DeepLabHead(2048,  7)
+net.aux_classifier = FCNHead(1024, 7)
+net.load_state_dict(torch.load('./P2_B_checkpoint/best_model.pth'))
 net = net.to(device)
 net.eval()
 
@@ -59,7 +62,6 @@ except:
 for x, filenames in test_loader:
     with torch.no_grad():
         x = x.to(device)
-        # out = net(x)['out']
-        out = net(x)
+        out = net(x)['out']
     pred = out.argmax(dim=1)
     pred2image(pred, filenames, output_folder)

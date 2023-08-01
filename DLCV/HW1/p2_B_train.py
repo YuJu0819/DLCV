@@ -21,7 +21,7 @@ class FocalLoss(nn.Module):
         super().__init__()
         self.alpha = alpha
         self.gamma = gamma
-        self.CE = nn.CrossEntropyLoss()
+        self.CE = nn.CrossEntropyLoss(ignore_index=ignore_index)
 
     def forward(self, logits, labels):
         log_pt = -self.CE(logits, labels)
@@ -77,8 +77,8 @@ valid_loader = DataLoader(
     dataset=valid_dataset, batch_size=2 * batch_size, shuffle=False, num_workers=6)
 
 device = torch.device('cuda')
-epochs = 80
-lr = 0.1
+epochs = 100
+lr = 1e-3
 best_mIoU = -1
 ckpt_path = f'./P2_B_checkpoint'
 
@@ -90,8 +90,10 @@ net.aux_classifier = FCNHead(1024, 7)
 net = net.to(device)
 net.train()
 loss_fn = FocalLoss()
-optim = torch.optim.SGD(net.parameters(), lr=lr, weight_decay=1e-5)
-scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer=optim, T_0 = 10, T_mult= 1)
+optim = torch.optim.AdamW(net.parameters(), lr=lr, weight_decay=1e-5)
+scheduler = torch.optim.lr_scheduler.OneCycleLR(
+    optim, max_lr=lr, steps_per_epoch=len(train_loader), epochs=epochs)
+
 if not os.path.isdir(ckpt_path):
     os.mkdir(ckpt_path)
 
